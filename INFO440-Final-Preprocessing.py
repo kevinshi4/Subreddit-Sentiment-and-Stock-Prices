@@ -1,5 +1,12 @@
 import praw
 from datetime import datetime, timedelta
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import pandas as pd
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 # Reddit API setup
 SECRET = ""
@@ -40,10 +47,6 @@ for score, title, selftext, date in top_posts_gamestop:
     print(f"Text: {selftext[:100]}...")  # Print the first 100 characters of the post
     print("-" * 80)
 
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
 
 # Download necessary NLTK data
 nltk.download('stopwords')
@@ -84,24 +87,16 @@ for score, title, selftext, date in top_posts_gamestop:
     cleaned_post = clean_text(title, selftext)
     cleaned_posts.append((score, cleaned_post, date))
 
-# Convert to DataFrame for further analysis
-import pandas as pd
-
 df_cleaned_posts = pd.DataFrame(cleaned_posts, columns=['score', 'cleaned_text', 'date'])
 
 # Save to example data to CSV
 file_path = 'cleaned_reddit_posts.csv'
 df_cleaned_posts.to_csv(file_path, index=False)
-
 print(f"Data saved to {file_path}")
 
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-# Download the VADER lexicon
+# Download the VADER lexicon and initialize sentiment analyzer
 nltk.download('vader_lexicon')
-
-# Initialize VADER sentiment intensity analyzer
 sia = SentimentIntensityAnalyzer()
 
 # Apply VADER sentiment analysis on each cleaned post
@@ -111,5 +106,4 @@ print(df_cleaned_posts.head())
 # Save the sentiment analysis to CSV
 file_path_with_sentiment = 'cleaned_reddit_posts_with_sentiment.csv'
 df_cleaned_posts.to_csv(file_path_with_sentiment, index=False)
-
 print(f"Data with sentiment scores saved to {file_path_with_sentiment}")
