@@ -89,10 +89,27 @@ import pandas as pd
 
 df_cleaned_posts = pd.DataFrame(cleaned_posts, columns=['score', 'cleaned_text', 'date'])
 
-# Specify the file path where you want to save the CSV file
+# Save to example data to CSV
 file_path = 'cleaned_reddit_posts.csv'
-
-# Save the DataFrame to CSV
 df_cleaned_posts.to_csv(file_path, index=False)
 
 print(f"Data saved to {file_path}")
+
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+# Download the VADER lexicon
+nltk.download('vader_lexicon')
+
+# Initialize VADER sentiment intensity analyzer
+sia = SentimentIntensityAnalyzer()
+
+# Apply VADER sentiment analysis on each cleaned post
+df_cleaned_posts['sentiment_score'] = df_cleaned_posts['cleaned_text'].apply(lambda text: sia.polarity_scores(text)['compound'])
+print(df_cleaned_posts.head())
+
+# Save the sentiment analysis to CSV
+file_path_with_sentiment = 'cleaned_reddit_posts_with_sentiment.csv'
+df_cleaned_posts.to_csv(file_path_with_sentiment, index=False)
+
+print(f"Data with sentiment scores saved to {file_path_with_sentiment}")
