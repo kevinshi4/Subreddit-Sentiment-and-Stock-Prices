@@ -1,4 +1,3 @@
-
 import praw
 from datetime import datetime, timedelta
 import re
@@ -20,33 +19,19 @@ reddit = praw.Reddit(client_id=APP_ID,
                      client_secret=SECRET,
                      user_agent=DEV)
 
-# Calculate the timestamp for 2 years ago
-two_years_ago = datetime.now() - timedelta(days=2*365)
-
-def get_top_posts_last_two_years(subreddit_name, top_limit=100):
+def get_top_posts(subreddit_name, top_limit=100):
     subreddit = reddit.subreddit(subreddit_name)
     top_posts = []
 
-    for submission in subreddit.top(time_filter='all', limit=top_limit):  # Fetch top x posts
+    # Fetch top X posts
+    for submission in subreddit.top(time_filter='all', limit=top_limit):
         post_date = datetime.fromtimestamp(submission.created_utc)
-        if post_date >= two_years_ago:
-            top_posts.append((submission.score, submission.title, submission.selftext, post_date))
+        top_posts.append((submission.score, submission.title, submission.selftext, post_date))
 
-    # Sort the posts by score in descending order
-    top_posts = sorted(top_posts, key=lambda x: x[0], reverse=True)
-
-    # Return the top X posts
-    return top_posts[:top_limit]
+    return top_posts
 
 # Example usage for r/GameStop
-top_posts_gamestop = get_top_posts_last_two_years('GameStop', top_limit=10000)
-
-# Print the results
-for score, title, selftext, date in top_posts_gamestop:
-    print(f"Score: {score}, Date: {date}")
-    print(f"Title: {title}")
-    print(f"Text: {selftext[:100]}...")  # Print the first 100 characters of the post
-    print("-" * 80)
+top_posts_gamestop = get_top_posts('GameStop', top_limit=10000)
 
 # Download necessary NLTK data
 nltk.download('stopwords')
@@ -80,7 +65,10 @@ for score, title, selftext, date in top_posts_gamestop:
 
 df_cleaned_posts = pd.DataFrame(cleaned_posts, columns=['score', 'cleaned_text', 'sentiment_score', 'date'])
 
-# Save to example data to CSV
+# Debug: Check if Reddit data was fetched and processed correctly
+print(f"Number of Reddit posts fetched: {len(df_cleaned_posts)}")
+
+# Save data to CSV
 file_path = 'cleaned_reddit_posts.csv'
 df_cleaned_posts.to_csv(file_path, index=False)
 print(f"Data saved to {file_path}")
@@ -115,16 +103,24 @@ stock_data.rename(columns={'Date': 'date'}, inplace=True)
 df_cleaned_posts['date'] = pd.to_datetime(df_cleaned_posts['date']).dt.date
 stock_data['date'] = pd.to_datetime(stock_data['date']).dt.date
 
+# Debug: Check date ranges and types
+print(f"Reddit data date range: {df_cleaned_posts['date'].min()} to {df_cleaned_posts['date'].max()}")
+print(f"Stock data date range: {stock_data['date'].min()} to {stock_data['date'].max()}")
+print(f"Reddit data date type: {df_cleaned_posts['date'].dtype}")
+print(f"Stock data date type: {stock_data['date'].dtype}")
+
 # Merge the Reddit posts data with stock data on the 'date' column
 df_combined = pd.merge(df_cleaned_posts, stock_data, on='date', how='inner')
 
-# Display the combined DataFrame
+# Debug: Check if merging was successful
+print(f"Number of rows in combined data: {len(df_combined)}")
 print(df_combined.head())
 
 # Save the combined data to CSV
 file_path_combined = 'reddit_posts_with_stock_data.csv'
 df_combined.to_csv(file_path_combined, index=False)
 print(f"Combined data saved to {file_path_combined}")
+
 
 
 import matplotlib.pyplot as plt
