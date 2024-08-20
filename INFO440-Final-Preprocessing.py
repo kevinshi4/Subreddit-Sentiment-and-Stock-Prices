@@ -72,7 +72,7 @@ post_volume = df_cleaned_posts.groupby('date').size().reset_index(name='post_vol
 df_cleaned_posts = pd.merge(df_cleaned_posts, post_volume, on='date', how='left')
 
 # Save data to CSV
-file_path = 'tesla_cleaned_reddit_posts.csv'
+file_path = 'gamestop_cleaned_reddit_posts.csv'
 df_cleaned_posts.to_csv(file_path, index=False)
 print(f"Data saved to {file_path}")
 
@@ -87,8 +87,8 @@ end_date = df_cleaned_posts['date'].max().strftime('%Y-%m-%d')
 
 print(f"Fetching stock data from {start_date} to {end_date}")
 
-# Fetch stock data for Tesla from Yahoo Finance
-ticker_symbol = 'GME'  # Tesla ticker symbol
+# Fetch stock data for Gamestop from Yahoo Finance
+ticker_symbol = 'GME'  # GME ticker symbol
 stock_data = yf.download(ticker_symbol, start=start_date, end=end_date)
 
 # Convert the stock_data index to a column for merging
@@ -109,7 +109,7 @@ print(f"Number of rows in combined data: {len(df_combined)}")
 print(df_combined.head())
 
 # Save the combined data to CSV
-file_path_combined = 'tesla_reddit_posts_with_stock_data.csv'
+file_path_combined = 'gamestop_reddit_posts_with_stock_data.csv'
 df_combined.to_csv(file_path_combined, index=False)
 print(f"Combined data saved to {file_path_combined}")
 
@@ -156,30 +156,41 @@ ax.set_ylabel('Stock Close Price')
 ax.grid(True)
 plt.show()
 
-# Plot Post Volume vs Stock Volume
-plt.figure(figsize=(12, 6))
-plt.plot(df_combined['date'], df_combined['post_volume'], label='Post Volume', color='red', alpha=0.7)
-plt.ylabel('Post Volume', color='red')
-plt.xlabel('Date')
-plt.title('Post Volume vs Stock Volume')
-plt.twinx()
-plt.plot(df_combined['date'], df_combined['Volume'], label='Stock Volume', color='purple', alpha=0.7)
-plt.ylabel('Stock Volume', color='purple')
-plt.grid(True)
+# Plot Weekly Sentiment Background with Stock Volume
+fig, ax = plt.subplots(figsize=(12, 6))
+plot_with_sentiment_background(ax, df_weekly_avg['week'], df_weekly_avg['sentiment_score'], 'coolwarm')
+ax.plot(df_combined['date'], df_combined['Volume'], label='Stock Volume', color='purple')
+ax.set_title('Weekly Sentiment vs Stock Volume')
+ax.set_xlabel('Date')
+ax.set_ylabel('Stock Volume')
+ax.grid(True)
 plt.show()
 
-# Resample by month and calculate the mean for numeric columns only
-numeric_columns = df_combined.select_dtypes(include=['number']).columns
-df_monthly_avg = df_combined.set_index('date')[numeric_columns].resample('M').mean().reset_index()
-
-# Plot Monthly Avg Post Volume vs Stock Volume
-plt.figure(figsize=(12, 6))
-plt.plot(df_monthly_avg['date'], df_monthly_avg['post_volume'], label='Monthly Avg Post Volume', color='red', alpha=0.7)
-plt.ylabel('Monthly Avg Post Volume', color='red')
-plt.xlabel('Month')
-plt.title('Monthly Avg Post Volume vs Stock Volume')
-plt.twinx()
-plt.plot(df_monthly_avg['date'], df_monthly_avg['Volume'], label='Monthly Avg Stock Volume', color='purple', alpha=0.7)
-plt.ylabel('Monthly Avg Stock Volume', color='purple')
-plt.grid(True)
+# Plot Weekly Sentiment Background with Post Volume
+fig, ax = plt.subplots(figsize=(12, 6))
+plot_with_sentiment_background(ax, df_weekly_avg['week'], df_weekly_avg['sentiment_score'], 'coolwarm')
+ax.plot(df_combined['date'], df_combined['post_volume'], label='Post Volume', color='red')
+ax.set_title('Weekly Sentiment vs Post Volume')
+ax.set_xlabel('Date')
+ax.set_ylabel('Post Volume')
+ax.grid(True)
 plt.show()
+
+# Plot Monthly Sentiment Background with Stock Volume
+fig, ax = plt.subplots(figsize=(12, 6))
+plot_with_sentiment_background(ax, df_monthly_avg['month'], df_monthly_avg['sentiment_score'], 'coolwarm')
+ax.plot(df_combined['date'], df_combined['Volume'], label='Stock Volume', color='purple')
+ax.set_title('Monthly Sentiment vs Stock Volume')
+ax.set_xlabel('Date')
+ax.set_ylabel('Stock Volume')
+ax.grid(True)
+plt.show()
+
+# Plot Monthly Sentiment Background with Post Volume
+fig, ax = plt.subplots(figsize=(12, 6))
+plot_with_sentiment_background(ax, df_monthly_avg['month'], df_monthly_avg['sentiment_score'], 'coolwarm')
+ax.plot(df_combined['date'], df_combined['post_volume'], label='Post Volume', color='red')
+ax.set_title('Monthly Sentiment vs Post Volume')
+ax.set_xlabel('Date')
+ax.set_ylabel('Post Volume')
+ax.grid(True)
