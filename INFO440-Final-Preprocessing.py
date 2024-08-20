@@ -31,7 +31,7 @@ def get_top_posts(subreddit_name, top_limit=100):
     return top_posts
 
 # Example usage for r/GameStop
-top_posts_gamestop = get_top_posts('GameStop', top_limit=10000)
+top_posts_gamestop = get_top_posts('GameStop', top_limit=1000)
 
 # Download necessary NLTK data
 nltk.download('stopwords')
@@ -68,8 +68,15 @@ df_cleaned_posts = pd.DataFrame(cleaned_posts, columns=['score', 'cleaned_text',
 # Debug: Check if Reddit data was fetched and processed correctly
 print(f"Number of Reddit posts fetched: {len(df_cleaned_posts)}")
 
+# Calculate post volume (number of posts per day)
+df_cleaned_posts['date'] = pd.to_datetime(df_cleaned_posts['date']).dt.date
+post_volume = df_cleaned_posts.groupby('date').size().reset_index(name='post_volume')
+
+# Merge post volume back into df_cleaned_posts
+df_cleaned_posts = pd.merge(df_cleaned_posts, post_volume, on='date', how='left')
+
 # Save data to CSV
-file_path = 'cleaned_reddit_posts.csv'
+file_path = 'gamestop_cleaned_reddit_posts.csv'
 df_cleaned_posts.to_csv(file_path, index=False)
 print(f"Data saved to {file_path}")
 
@@ -117,7 +124,7 @@ print(f"Number of rows in combined data: {len(df_combined)}")
 print(df_combined.head())
 
 # Save the combined data to CSV
-file_path_combined = 'reddit_posts_with_stock_data.csv'
+file_path_combined = 'gamestop_reddit_posts_with_stock_data.csv'
 df_combined.to_csv(file_path_combined, index=False)
 print(f"Combined data saved to {file_path_combined}")
 
@@ -166,5 +173,72 @@ plt.plot(df_combined['date'], df_combined['Volume'], label='Volume', color='red'
 plt.xlabel('Date')
 plt.ylabel('Volume')
 plt.title('Stock Volume Over Time')
+plt.grid(True)
+plt.show()
+
+# Plot Post Volume over Time
+plt.figure(figsize=(10, 6))
+plt.plot(df_combined['date'], df_combined['post_volume'], label='Post Volume', color='blue')
+plt.xlabel('Date')
+plt.ylabel('Post Volume')
+plt.title('Post Volume Over Time')
+plt.grid(True)
+plt.show()
+
+
+
+###################################
+### Plotting Monthly Averages ###
+###################################
+
+# Convert the date column back to datetime for resampling
+df_combined['date'] = pd.to_datetime(df_combined['date'])
+
+# Resample by month and calculate the mean for numeric columns only
+numeric_columns = df_combined.select_dtypes(include=['number']).columns
+df_monthly_avg = df_combined.set_index('date')[numeric_columns].resample('M').mean().reset_index()
+
+# Plot Sentiment Score Average per Month
+plt.figure(figsize=(10, 6))
+plt.plot(df_monthly_avg['date'], df_monthly_avg['sentiment_score'], label='Avg Sentiment Score per Month')
+plt.xlabel('Month')
+plt.ylabel('Avg Sentiment Score')
+plt.title('Average Sentiment Score per Month')
+plt.grid(True)
+plt.show()
+
+# Plot Reddit Post Score Average per Month
+plt.figure(figsize=(10, 6))
+plt.plot(df_monthly_avg['date'], df_monthly_avg['score'], label='Avg Reddit Post Score per Month', color='orange')
+plt.xlabel('Month')
+plt.ylabel('Avg Reddit Post Score')
+plt.title('Average Reddit Post Score per Month')
+plt.grid(True)
+plt.show()
+
+# Plot Stock Close Price Average per Month
+plt.figure(figsize=(10, 6))
+plt.plot(df_monthly_avg['date'], df_monthly_avg['Close'], label='Avg Stock Close Price per Month', color='green')
+plt.xlabel('Month')
+plt.ylabel('Avg Close Price')
+plt.title('Average Stock Close Price per Month')
+plt.grid(True)
+plt.show()
+
+# Plot Stock Volume Average per Month
+plt.figure(figsize=(10, 6))
+plt.plot(df_monthly_avg['date'], df_monthly_avg['Volume'], label='Avg Stock Volume per Month', color='red')
+plt.xlabel('Month')
+plt.ylabel('Avg Volume')
+plt.title('Average Stock Volume per Month')
+plt.grid(True)
+plt.show()
+
+# Plot Post Volume Average per Month
+plt.figure(figsize=(10, 6))
+plt.plot(df_monthly_avg['date'], df_monthly_avg['post_volume'], label='Avg Post Volume per Month', color='blue')
+plt.xlabel('Month')
+plt.ylabel('Avg Post Volume')
+plt.title('Average Post Volume per Month')
 plt.grid(True)
 plt.show()
