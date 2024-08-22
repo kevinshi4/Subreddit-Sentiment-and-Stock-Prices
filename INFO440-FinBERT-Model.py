@@ -5,7 +5,7 @@ from transformers import pipeline
 import torch.nn.functional as F
 
 # Load the pre-trained FinBERT model
-model_name = "yiyanghkust/finbert-tone"
+model_name = "yiyanghkust/finbert-tone" #
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name)
 
